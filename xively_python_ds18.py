@@ -22,8 +22,9 @@ api = xively.XivelyAPIClient(API_KEY)
 def read_ds18_temp():
   if DEBUG:
     print "Reading the DS18B20 sensor"
+  #sensor = W1ThermSensor(W1ThermSensor.THERM_SENSOR_DS18B20, "0000032480eb")
   sensor = W1ThermSensor(W1ThermSensor.THERM_SENSOR_DS18B20, DS18_ID)
-  return sensor.get_temperature() 
+  return sensor.get_temperature()
 
 # function to return a datastream object. This either creates a new datastream,
 # or returns an existing one
@@ -36,32 +37,48 @@ def get_datastream(feed):
   except:
     if DEBUG:
       print "Creating new datastream"
-    datastream = feed.datastreams.create("outdoor_temp", tags="load_01")
-    return datastream
+    #datastream = feed.datastreams.create("outdoor_temp", tags="load_01")
+    #return datastream
+    return
 
-# main program entry point - runs continuously updating our datastream with the
-# current 1 minute load average
+# main program entry point - runs continuously updating our datastream
 def run():
-  print "Starting Xively tutorial script"
+  print "Starting Modified Xively tutorial script"
 
-  feed = api.feeds.get(FEED_ID)
+  #feed = api.feeds.get(FEED_ID)
 
-  datastream = get_datastream(feed)
-  datastream.max_value = None
-  datastream.min_value = None
+  #datastream = get_datastream(feed)
+  #datastream.max_value = None
+  #datastream.min_value = None
 
   while True:
     outdoor_temp = read_ds18_temp()
 
     if DEBUG:
       print "Updating Xively feed with value: %s" % outdoor_temp
-
-    datastream.current_value = outdoor_temp
-    datastream.at = datetime.datetime.utcnow()
     try:
-      datastream.update()
-    except requests.HTTPError as e:
-      print "HTTPError({0}): {1}".format(e.errno, e.strerror)
+        feed = api.feeds.get(FEED_ID)
+    except:
+        print "failed to call api.fees.get"
+        time.sleep(100)#check later if our connection is back up. 
+        continue
+
+    datastream = get_datastream(feed)
+    print 'print my datastream = ', datastream
+
+    if (feed and datastream):
+        datastream.max_value = None
+        datastream.min_value = None
+        datastream.current_value = outdoor_temp
+        datastream.at = datetime.datetime.utcnow()
+        try:
+           datastream.update()
+        except (requests.HTTPError,  requests.ConnectionError) as e:
+#           print "Error({0}): {1}".format(e.errno, e.strerror)
+            time.sleep(100)
+            continue
+#    except requests.HTTPError as e:
+#      print "HTTPError({0}): {1}".format(e.errno, e.strerror)
 
     time.sleep(10)
 

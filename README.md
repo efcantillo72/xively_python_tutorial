@@ -10,5 +10,6 @@ Adafruit's tutorial is here:
 https://learn.adafruit.com/adafruits-raspberry-pi-lesson-11-ds18b20-temperature-sensing/ds18b20
 
 Finally to ensure that the script runs on boot I added it to rc.local to run the script on boot. 
+sudo /home/pi/xively_python_ds18.py &
 
 
